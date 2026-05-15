@@ -12,9 +12,26 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ProjectCategory {
+  PROFESSIONAL
+  FREELANCE
+  PERSONAL
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String
+  languages   String[]
+  link        String
+  category    ProjectCategory
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
