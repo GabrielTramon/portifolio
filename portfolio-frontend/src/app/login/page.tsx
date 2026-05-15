@@ -32,7 +32,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("token", data.token);
-      router.push("/portfolio");
+      router.push("/dashboard");
     } catch {
       setError("Erro de conexão com o servidor");
     } finally {
