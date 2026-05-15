@@ -8,6 +8,7 @@ export class Project {
     public readonly languages: string[],
     public readonly link: string,
     public readonly category: ProjectCategory,
+    public readonly hasDetailsPage: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
   ) {}

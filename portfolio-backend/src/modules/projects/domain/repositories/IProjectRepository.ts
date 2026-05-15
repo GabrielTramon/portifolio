@@ -7,6 +7,7 @@ export interface CreateProjectData {
   languages: string[];
   link: string;
   category: ProjectCategory;
+  hasDetailsPage?: boolean;
 }
 
 export interface UpdateProjectData {
@@ -15,12 +16,14 @@ export interface UpdateProjectData {
   languages?: string[];
   link?: string;
   category?: ProjectCategory;
+  hasDetailsPage?: boolean;
 }
 
 export interface IProjectRepository {
   create(data: CreateProjectData): Promise<Project>;
   findAll(): Promise<Project[]>;
   findById(id: string): Promise<Project | null>;
+  findWithDetailsPage(): Promise<Project[]>;
   update(id: string, data: UpdateProjectData): Promise<Project>;
   delete(id: string): Promise<void>;
 }
