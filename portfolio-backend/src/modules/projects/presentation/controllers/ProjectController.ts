@@ -4,6 +4,7 @@ import { ListProjectsUseCase } from "../../application/use-cases/ListProjectsUse
 import { GetProjectByIdUseCase } from "../../application/use-cases/GetProjectByIdUseCase";
 import { UpdateProjectUseCase } from "../../application/use-cases/UpdateProjectUseCase";
 import { DeleteProjectUseCase } from "../../application/use-cases/DeleteProjectUseCase";
+import { ListProjectsWithDetailsPageUseCase } from "../../application/use-cases/ListProjectsWithDetailsPageUseCase";
 import { validateCreateProject, validateUpdateProject } from "../validators/projectValidators";
 
 export class ProjectController {
@@ -13,6 +14,7 @@ export class ProjectController {
     private readonly getProjectByIdUseCase: GetProjectByIdUseCase,
     private readonly updateProjectUseCase: UpdateProjectUseCase,
     private readonly deleteProjectUseCase: DeleteProjectUseCase,
+    private readonly listProjectsWithDetailsPageUseCase: ListProjectsWithDetailsPageUseCase,
   ) {}
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -60,6 +62,15 @@ export class ProjectController {
       const { id } = req.params as { id: string };
       await this.deleteProjectUseCase.execute(id);
       res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async listWithDetailsPage(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const projects = await this.listProjectsWithDetailsPageUseCase.execute();
+      res.json({ data: projects });
     } catch (error) {
       next(error);
     }

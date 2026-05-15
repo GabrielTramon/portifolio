@@ -32,12 +32,17 @@ export function validateCreateProject(body: unknown): CreateProjectDTO {
     throw new AppError(`category must be one of: ${validCategories.join(", ")}`);
   }
 
+  if (data.hasDetailsPage !== undefined && typeof data.hasDetailsPage !== "boolean") {
+    throw new AppError("hasDetailsPage deve ser boolean");
+  }
+
   return {
     name: data.name.trim(),
     description: data.description.trim(),
     languages: data.languages as string[],
     link: data.link.trim(),
     category: data.category,
+    hasDetailsPage: typeof data.hasDetailsPage === "boolean" ? data.hasDetailsPage : false,
   };
 }
 
@@ -82,6 +87,13 @@ export function validateUpdateProject(body: unknown): UpdateProjectDTO {
       throw new AppError(`category must be one of: ${validCategories.join(", ")}`);
     }
     dto.category = data.category;
+  }
+
+  if (data.hasDetailsPage !== undefined) {
+    if (typeof data.hasDetailsPage !== "boolean") {
+      throw new AppError("hasDetailsPage deve ser boolean");
+    }
+    dto.hasDetailsPage = data.hasDetailsPage;
   }
 
   return dto;

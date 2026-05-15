@@ -1,4 +1,5 @@
 import "dotenv/config";
+import path from "path";
 import express from "express";
 import cors from "cors";
 import authRouter from "./routes/auth";
@@ -13,6 +14,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.get("/", (_req, res) => {
   res.json({ message: "Portfolio Backend API" });
