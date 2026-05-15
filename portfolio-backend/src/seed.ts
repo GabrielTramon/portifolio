@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./lib/prisma";
 
 async function main() {
-  const email = "vanessa@be1.com.br";
+  const email = "gabrieljoaquim080706@gmail.com";
   const password = process.env.SEED_ADMIN_PASSWORD || "Aranha300445";
 
   const passwordHash = await bcrypt.hash(password, 10);
