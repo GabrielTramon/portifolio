@@ -18,6 +18,11 @@ enum ProjectCategory {
   PERSONAL
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -26,12 +31,28 @@ model User {
 }
 
 model Project {
-  id          String          @id @default(cuid())
-  name        String
-  description String
-  languages   String[]
-  link        String
-  category    ProjectCategory
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  description    String
+  languages      String[]
+  link           String
+  category       ProjectCategory
+  hasDetailsPage Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  media          ProjectMedia[]
+}
+
+model ProjectMedia {
+  id           String    @id @default(cuid())
+  projectId    String
+  url          String
+  type         MediaType
+  order        Int
+  originalName String
+  createdAt    DateTime  @default(now())
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([projectId, order])
 }
