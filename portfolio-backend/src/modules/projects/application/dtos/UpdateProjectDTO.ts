@@ -6,4 +6,5 @@ export interface UpdateProjectDTO {
   languages?: string[];
   link?: string;
   category?: ProjectCategory;
+  hasDetailsPage?: boolean;
 }
