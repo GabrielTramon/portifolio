@@ -15,6 +15,7 @@ type PrismaProjectRecord = {
   languages: string[];
   link: string;
   category: PrismaProjectCategory;
+  hasDetailsPage: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -28,6 +29,7 @@ export class PrismaProjectRepository implements IProjectRepository {
         languages: data.languages,
         link: data.link,
         category: data.category as PrismaProjectCategory,
+        hasDetailsPage: data.hasDetailsPage ?? false,
       },
     });
     return this.toDomain(record);
@@ -46,6 +48,14 @@ export class PrismaProjectRepository implements IProjectRepository {
     return this.toDomain(record);
   }
 
+  async findWithDetailsPage(): Promise<Project[]> {
+    const records = await prisma.project.findMany({
+      where: { hasDetailsPage: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return records.map((r) => this.toDomain(r));
+  }
+
   async update(id: string, data: UpdateProjectData): Promise<Project> {
     const record = await prisma.project.update({
       where: { id },
@@ -57,6 +67,7 @@ export class PrismaProjectRepository implements IProjectRepository {
         ...(data.category !== undefined && {
           category: data.category as PrismaProjectCategory,
         }),
+        ...(data.hasDetailsPage !== undefined && { hasDetailsPage: data.hasDetailsPage }),
       },
     });
     return this.toDomain(record);
@@ -74,6 +85,7 @@ export class PrismaProjectRepository implements IProjectRepository {
       record.languages,
       record.link,
       record.category as unknown as ProjectCategory,
+      record.hasDetailsPage,
       record.createdAt,
       record.updatedAt,
     );
