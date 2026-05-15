@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { API_URL, CATEGORY_LABELS, CATEGORY_ORDER, type Project } from "../../lib/api";
 
 export const metadata: Metadata = {
   title: "Gabriel Tramontin — Desenvolvedor Full Stack",
@@ -7,120 +8,26 @@ export const metadata: Metadata = {
 };
 
 const skills = [
-  "TypeScript",
-  "JavaScript",
-  "SQL",
-  "React.js",
-  "Next.js",
-  "Tailwind CSS",
-  "shadcn/ui",
-  "React Native",
-  "Node.js",
-  "Express",
-  "NestJS",
-  "APIs RESTful",
-  "PostgreSQL",
-  "MySQL",
-  "Prisma ORM",
-  "Docker",
-  "GitHub Actions",
-  "Vercel",
-  "Railway",
-  "AWS",
-  "AWS Amplify",
-  "Git",
-  "n8n",
+  "TypeScript", "JavaScript", "SQL", "React.js", "Next.js", "Tailwind CSS",
+  "shadcn/ui", "React Native", "Node.js", "Express", "NestJS", "APIs RESTful",
+  "PostgreSQL", "MySQL", "Prisma ORM", "Docker", "GitHub Actions", "Vercel",
+  "Railway", "AWS", "AWS Amplify", "Git", "n8n",
 ];
 
-type Project = {
-  title: string;
-  description: string;
-  tags: string[];
-  href: string;
-  category: "Profissional" | "Freelance" | "Pessoal";
-};
+async function fetchProjects(): Promise<Project[]> {
+  try {
+    const res = await fetch(`${API_URL}/projects`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
 
-const projects: Project[] = [
-  {
-    title: "Dashboard Comercial / CRM",
-    description:
-      "Sistema de gestão de prospects utilizado por dezenas de vendedores, com mais de 2.000 prospects cadastrados. Funil de vendas dinâmico e personalizável, filtros por responsável, controle granular de permissões e análise de conversão end-to-end.",
-    tags: ["Next.js", "TypeScript", "PostgreSQL"],
-    href: "#",
-    category: "Profissional",
-  },
-  {
-    title: "Marketplace",
-    description:
-      "Interface de compra e venda com centenas de usuários e dezenas de vendedores ativos. Integrado ao app React Native via WebView, garantindo paridade de funcionalidades entre as plataformas.",
-    tags: ["Next.js", "Tailwind CSS", "React Native"],
-    href: "#",
-    category: "Profissional",
-  },
-  {
-    title: "Sistema de Patrimônio",
-    description:
-      "Plataforma de controle de ativos utilizada por dezenas de usuários internos, gerenciando centenas de patrimônios. Rastreabilidade completa de equipamentos com vínculo a usuários e setores da empresa.",
-    tags: ["Next.js", "Node.js", "PostgreSQL", "Prisma"],
-    href: "#",
-    category: "Profissional",
-  },
-  {
-    title: "Site Institucional BE1",
-    description:
-      "Site responsivo integrado ao backend do marketplace para exibir produtos em tempo real e capturar leads via formulário conectado ao CRM. Módulo de cadastro de currículos com envio automático ao RH e integração com Google Analytics.",
-    tags: ["Next.js", "Tailwind CSS", "AWS Amplify"],
-    href: "https://be1.com.br",
-    category: "Profissional"
-  },
-  {
-    title: "GrandExpress",
-    description:
-      "Landing page institucional desenvolvida para cliente internacional na Irlanda. Comunicação e levantamento de requisitos em inglês, com entrega autônoma até o deploy.",
-    tags: ["Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
-    href: "https://grandexpress.services",
-    category: "Freelance",
-  },
-  {
-    title: "Volare Tramontin",
-    description:
-      "Site institucional para agência de viagens, focado em apresentação da marca, divulgação de pacotes e captação de leads.",
-    tags: ["Next.js", "Tailwind CSS", "Vercel"],
-    href: "https://volaretramontin.com",
-    category: "Freelance",
-  },
-  {
-    title: "ERP Multi-Tenant",
-    description:
-      "Sistema ERP completo com arquitetura multi-tenant. Autenticação e controle hierárquico de permissões, gestão de empresas, funcionários, clientes e produtos. PDV com sistema de caixa e módulo financeiro com despesas mensais.",
-    tags: [
-      "Next.js",
-      "NestJS",
-      "TypeScript",
-      "Prisma",
-      "PostgreSQL",
-      "shadcn/ui",
-    ],
-    href: "#",
-    category: "Pessoal",
-  },
-  {
-    title: "Pipeline de Automação para YouTube",
-    description:
-      "Pipeline 100% automatizado para criação e publicação de vídeos no YouTube. Integra geração de roteiro via LLM, síntese de voz, renderização de vídeo e upload automático.",
-    tags: ["n8n", "Groq/LLaMA", "ElevenLabs", "Creatomate", "YouTube API"],
-    href: "#",
-    category: "Pessoal",
-  },
-];
+export default async function PortfolioPage() {
+  const projects = await fetchProjects();
 
-const categories: Project["category"][] = [
-  "Profissional",
-  "Freelance",
-  "Pessoal",
-];
-
-export default function PortfolioPage() {
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
       {/* Nav */}
@@ -130,15 +37,9 @@ export default function PortfolioPage() {
             gabriel<span className="text-[#f0f6fc]">.dev</span>
           </span>
           <div className="flex items-center gap-6 text-sm text-[#8b949e]">
-            <a href="#sobre" className="transition hover:text-[#f0f6fc]">
-              Sobre
-            </a>
-            <a href="#stack" className="transition hover:text-[#f0f6fc]">
-              Stack
-            </a>
-            <a href="#projetos" className="transition hover:text-[#f0f6fc]">
-              Projetos
-            </a>
+            <a href="#sobre" className="transition hover:text-[#f0f6fc]">Sobre</a>
+            <a href="#stack" className="transition hover:text-[#f0f6fc]">Stack</a>
+            <a href="#projetos" className="transition hover:text-[#f0f6fc]">Projetos</a>
             <a
               href="#contato"
               className="rounded-md border border-[#30363d] px-4 py-1.5 transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
@@ -161,14 +62,11 @@ export default function PortfolioPage() {
             Gabriel Tramontin
           </h1>
 
-          <p className="mt-4 font-mono text-lg text-[#58a6ff]">
-            Desenvolvedor Full Stack
-          </p>
+          <p className="mt-4 font-mono text-lg text-[#58a6ff]">Desenvolvedor Full Stack</p>
 
           <p className="mt-6 max-w-xl text-base leading-relaxed text-[#8b949e]">
-            Construo aplicações web rápidas e escaláveis do banco de dados até a
-            interface. Foco em código limpo, boa experiência de desenvolvimento
-            e entregas que importam.
+            Construo aplicações web rápidas e escaláveis do banco de dados até a interface.
+            Foco em código limpo, boa experiência de desenvolvimento e entregas que importam.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -198,18 +96,8 @@ export default function PortfolioPage() {
 
           <div className="mt-24 flex items-center gap-1 text-xs text-[#484f58] animate-bounce">
             <span>role para baixo</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </section>
@@ -225,17 +113,14 @@ export default function PortfolioPage() {
                 <span className="text-[#58a6ff]">software que funciona.</span>
               </h2>
               <p className="mt-5 leading-relaxed text-[#8b949e]">
-                Olá, sou Gabriel. Desenvolvedor Full Stack com mais de 1 ano de
-                experiência entregando sistemas em produção com Next.js,
-                Node.js, TypeScript e PostgreSQL. Na BE1 Tecnologia, projetei e
-                desenvolvi 4 sistemas end-to-end — desde o levantamento de
-                requisitos até o deploy, aplicando Clean Architecture e
-                participando ativamente de code reviews.
+                Olá, sou Gabriel. Desenvolvedor Full Stack com mais de 1 ano de experiência entregando
+                sistemas em produção com Next.js, Node.js, TypeScript e PostgreSQL. Na BE1 Tecnologia,
+                projetei e desenvolvi 4 sistemas end-to-end — desde o levantamento de requisitos até
+                o deploy, aplicando Clean Architecture e participando ativamente de code reviews.
               </p>
               <p className="mt-4 leading-relaxed text-[#8b949e]">
-                Também atendo clientes internacionais como freelancer, com foco
-                em código limpo e entregas previsíveis. Atualmente cursando
-                Engenharia de Software na UNISATC.
+                Também atendo clientes internacionais como freelancer, com foco em código limpo e
+                entregas previsíveis. Atualmente cursando Engenharia de Software na UNISATC.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -245,13 +130,8 @@ export default function PortfolioPage() {
                 { label: "Atuação", value: "Full-Stack" },
                 { label: "Localização", value: "Criciúma/SC" },
               ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-xl border border-[#21262d] bg-[#161b22] p-5"
-                >
-                  <p className="text-2xl font-bold text-[#f0f6fc]">
-                    {item.value}
-                  </p>
+                <div key={item.label} className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
+                  <p className="text-2xl font-bold text-[#f0f6fc]">{item.value}</p>
                   <p className="mt-1 text-sm text-[#8b949e]">{item.label}</p>
                 </div>
               ))}
@@ -259,17 +139,12 @@ export default function PortfolioPage() {
           </div>
         </section>
 
-        {/* Divider */}
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="h-px bg-gradient-to-r from-transparent via-[#21262d] to-transparent" />
-        </div>
+        <Divider />
 
         {/* Skills */}
         <section id="stack" className="mx-auto max-w-5xl px-6 py-24">
           <SectionLabel>Stack</SectionLabel>
-          <h2 className="mt-4 text-3xl font-bold text-[#f0f6fc]">
-            O que uso no dia a dia
-          </h2>
+          <h2 className="mt-4 text-3xl font-bold text-[#f0f6fc]">O que uso no dia a dia</h2>
           <div className="mt-10 flex flex-wrap gap-3">
             {skills.map((skill) => (
               <span
@@ -282,152 +157,91 @@ export default function PortfolioPage() {
           </div>
         </section>
 
-        {/* Divider */}
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="h-px bg-gradient-to-r from-transparent via-[#21262d] to-transparent" />
-        </div>
+        <Divider />
 
         {/* Projects */}
         <section id="projetos" className="mx-auto max-w-5xl px-6 py-24">
           <SectionLabel>Trabalhos</SectionLabel>
-          <h2 className="mt-4 text-3xl font-bold text-[#f0f6fc]">
-            Projetos em destaque
-          </h2>
+          <h2 className="mt-4 text-3xl font-bold text-[#f0f6fc]">Projetos em destaque</h2>
 
-          {categories.map((category) => {
-            const filtered = projects.filter((p) => p.category === category);
-            return (
-              <div key={category} className="mt-12">
-                <h3 className="mb-6 font-mono text-sm uppercase tracking-widest text-[#484f58]">
-                  {category}
-                </h3>
-                <div className="grid gap-6 md:grid-cols-2">
-                  {filtered.map((project) => {
-                    const hasLink = project.href !== "#";
-                    const cardClass =
-                      "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
-                    const inner = (
-                      <>
-                        <div className="flex items-start justify-between">
-                          <svg
-                            className="h-8 w-8 text-[#58a6ff]"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                            />
-                          </svg>
-                          {hasLink && (
-                            <svg
-                              className="h-4 w-4 text-[#484f58] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#8b949e]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
+          {projects.length === 0 ? (
+            <p className="mt-12 text-sm text-[#484f58]">Nenhum projeto cadastrado ainda.</p>
+          ) : (
+            CATEGORY_ORDER.map((category) => {
+              const filtered = projects.filter((p) => p.category === category);
+              if (filtered.length === 0) return null;
+              return (
+                <div key={category} className="mt-12">
+                  <h3 className="mb-6 font-mono text-sm uppercase tracking-widest text-[#484f58]">
+                    {CATEGORY_LABELS[category]}
+                  </h3>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {filtered.map((project) => {
+                      const hasLink = project.link !== "#";
+                      const cardClass =
+                        "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
+                      const inner = (
+                        <>
+                          <div className="flex items-start justify-between">
+                            <svg className="h-8 w-8 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
-                          )}
-                        </div>
-                        <h3 className="mt-4 font-semibold text-[#f0f6fc]">
-                          {project.title}
-                        </h3>
-                        <p className="mt-2 flex-1 text-sm leading-relaxed text-[#8b949e]">
-                          {project.description}
-                        </p>
-                        <div className="mt-5 flex flex-wrap gap-2">
-                          {project.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </>
-                    );
-                    return hasLink ? (
-                      <a
-                        key={project.title}
-                        href={project.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cardClass}
-                      >
-                        {inner}
-                      </a>
-                    ) : (
-                      <div key={project.title} className={cardClass}>
-                        {inner}
-                      </div>
-                    );
-                  })}
+                            {hasLink && (
+                              <svg className="h-4 w-4 text-[#484f58] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#8b949e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            )}
+                          </div>
+                          <h3 className="mt-4 font-semibold text-[#f0f6fc]">{project.name}</h3>
+                          <p className="mt-2 flex-1 text-sm leading-relaxed text-[#8b949e]">{project.description}</p>
+                          <div className="mt-5 flex flex-wrap gap-2">
+                            {project.languages.map((lang) => (
+                              <span key={lang} className="rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
+                                {lang}
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      );
+                      return hasLink ? (
+                        <a key={project.id} href={project.link} target="_blank" rel="noopener noreferrer" className={cardClass}>
+                          {inner}
+                        </a>
+                      ) : (
+                        <div key={project.id} className={cardClass}>{inner}</div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </section>
 
-        {/* Divider */}
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="h-px bg-gradient-to-r from-transparent via-[#21262d] to-transparent" />
-        </div>
+        <Divider />
 
         {/* Contact */}
         <section id="contato" className="mx-auto max-w-5xl px-6 py-24">
           <SectionLabel>Contato</SectionLabel>
           <div className="mt-8 rounded-2xl border border-[#21262d] bg-[#161b22] p-10 text-center">
-            <h2 className="text-3xl font-bold text-[#f0f6fc]">
-              Vamos construir algo juntos
-            </h2>
+            <h2 className="text-3xl font-bold text-[#f0f6fc]">Vamos construir algo juntos</h2>
             <p className="mx-auto mt-4 max-w-md text-[#8b949e]">
-              Tem um projeto em mente ou só quer conversar? Minha caixa de
-              entrada está sempre aberta.
+              Tem um projeto em mente ou só quer conversar? Minha caixa de entrada está sempre aberta.
             </p>
             <a
               href="mailto:gabrieltramontin.dev@gmail.com"
               className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#238636] px-8 py-3 text-sm font-medium text-white transition hover:bg-[#2ea043]"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               Enviar e-mail
             </a>
             <div className="mt-8 flex items-center justify-center gap-6">
-              <a
-                href="https://github.com/GabrielTramon"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[#8b949e] transition hover:text-[#f0f6fc]"
-              >
+              <a href="https://github.com/GabrielTramon" target="_blank" rel="noopener noreferrer" className="text-sm text-[#8b949e] transition hover:text-[#f0f6fc]">
                 GitHub
               </a>
-              <a
-                href="https://linkedin.com/in/gabriel-tramontin"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[#8b949e] transition hover:text-[#f0f6fc]"
-              >
+              <a href="https://linkedin.com/in/gabriel-tramontin" target="_blank" rel="noopener noreferrer" className="text-sm text-[#8b949e] transition hover:text-[#f0f6fc]">
                 LinkedIn
               </a>
             </div>
@@ -435,11 +249,8 @@ export default function PortfolioPage() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-[#21262d] py-8 text-center text-xs text-[#484f58]">
-        <p>
-          Desenvolvido com Next.js & Tailwind CSS — Gabriel Tramontin © 2025
-        </p>
+        <p>Desenvolvido com Next.js & Tailwind CSS — Gabriel Tramontin © 2025</p>
       </footer>
     </div>
   );
@@ -449,9 +260,15 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
       <div className="h-px w-8 bg-[#58a6ff]" />
-      <span className="font-mono text-xs uppercase tracking-widest text-[#58a6ff]">
-        {children}
-      </span>
+      <span className="font-mono text-xs uppercase tracking-widest text-[#58a6ff]">{children}</span>
+    </div>
+  );
+}
+
+function Divider() {
+  return (
+    <div className="mx-auto max-w-5xl px-6">
+      <div className="h-px bg-gradient-to-r from-transparent via-[#21262d] to-transparent" />
     </div>
   );
 }
