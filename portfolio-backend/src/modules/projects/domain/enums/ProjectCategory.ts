@@ -1,0 +1,5 @@
+export enum ProjectCategory {
+  PROFESSIONAL = "PROFESSIONAL",
+  FREELANCE = "FREELANCE",
+  PERSONAL = "PERSONAL",
+}
