@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, FormEvent } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   API_URL,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   type Project,
+  type ProjectMedia,
   type ProjectCategory,
 } from "../../lib/api";
 
@@ -34,6 +35,8 @@ const categoryBadge: Record<ProjectCategory, string> = {
   PERSONAL: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
 };
 
+type ModalStep = "form" | "media";
+
 export default function DashboardPage() {
   const router = useRouter();
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -41,15 +44,22 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState<ModalStep>("form");
   const [editing, setEditing] = useState<Project | null>(null);
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
+  const [uploadedMedia, setUploadedMedia] = useState<ProjectMedia[]>([]);
+
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const token = () =>
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -73,6 +83,9 @@ export default function DashboardPage() {
     setEditing(null);
     setForm(emptyForm);
     setFormError("");
+    setModalStep("form");
+    setSavedProjectId(null);
+    setUploadedMedia([]);
     setModalOpen(true);
   }
 
@@ -87,6 +100,9 @@ export default function DashboardPage() {
       hasDetailsPage: project.hasDetailsPage,
     });
     setFormError("");
+    setModalStep("form");
+    setSavedProjectId(project.id);
+    setUploadedMedia([]);
     setModalOpen(true);
   }
 
@@ -94,9 +110,13 @@ export default function DashboardPage() {
     setModalOpen(false);
     setEditing(null);
     setFormError("");
+    setUploadError("");
+    setUploadedMedia([]);
+    setSavedProjectId(null);
+    fetchProjects();
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
 
@@ -137,12 +157,66 @@ export default function DashboardPage() {
         return;
       }
 
-      closeModal();
-      fetchProjects();
+      const projectId = json.data.id;
+      setSavedProjectId(projectId);
+
+      if (form.hasDetailsPage) {
+        setModalStep("media");
+      } else {
+        closeModal();
+      }
     } catch {
       setFormError("Erro de conexão com o servidor.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !savedProjectId) return;
+
+    if (uploadedMedia.length + files.length > 6) {
+      setUploadError(`Limite de 6 mídias. Já tem ${uploadedMedia.length}.`);
+      return;
+    }
+
+    setUploading(true);
+    setUploadError("");
+
+    const formData = new FormData();
+    Array.from(files).forEach((f) => formData.append("files", f));
+
+    try {
+      const res = await fetch(`${API_URL}/projects/${savedProjectId}/media`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token()}` },
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setUploadError(json.error || "Erro ao fazer upload.");
+        return;
+      }
+      setUploadedMedia((prev) => [...prev, ...(json.data as ProjectMedia[])]);
+    } catch {
+      setUploadError("Erro de conexão ao enviar arquivos.");
+    } finally {
+      setUploading(false);
+      if (uploadInputRef.current) uploadInputRef.current.value = "";
+    }
+  }
+
+  async function removeUploadedMedia(mediaId: string) {
+    if (!savedProjectId) return;
+    try {
+      await fetch(`${API_URL}/projects/${savedProjectId}/media/${mediaId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      setUploadedMedia((prev) => prev.filter((m) => m.id !== mediaId));
+    } catch {
+      setUploadError("Erro ao remover mídia.");
     }
   }
 
@@ -160,40 +234,6 @@ export default function DashboardPage() {
       setError("Erro ao excluir projeto.");
     } finally {
       setDeletingId(null);
-    }
-  }
-
-  function triggerUpload(projectId: string) {
-    setUploadTargetId(projectId);
-    setTimeout(() => uploadInputRef.current?.click(), 0);
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
-    if (!files || files.length === 0 || !uploadTargetId) return;
-
-    setUploadingId(uploadTargetId);
-    setError("");
-
-    const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append("files", file));
-
-    try {
-      const res = await fetch(`${API_URL}/projects/${uploadTargetId}/media`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token()}` },
-        body: formData,
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || "Erro ao fazer upload.");
-      }
-    } catch {
-      setError("Erro de conexão ao enviar arquivos.");
-    } finally {
-      setUploadingId(null);
-      setUploadTargetId(null);
-      if (uploadInputRef.current) uploadInputRef.current.value = "";
     }
   }
 
@@ -216,7 +256,7 @@ export default function DashboardPage() {
         accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
         multiple
         className="hidden"
-        onChange={handleFileChange}
+        onChange={handleUpload}
       />
 
       <header className="border-b border-[#21262d] bg-[#0d1117]">
@@ -315,54 +355,16 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {project.link !== "#" && !project.hasDetailsPage && (
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 truncate text-xs text-[#484f58] transition hover:text-[#8b949e]"
-                  >
-                    🔗 {project.link}
-                  </a>
-                )}
-
                 {project.hasDetailsPage && (
-                  <div className="mt-4 rounded-lg border border-[#30363d] bg-[#0d1117] p-3">
-                    <p className="mb-2 text-xs font-medium text-[#8b949e]">Mídias do projeto</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => triggerUpload(project.id)}
-                        disabled={uploadingId === project.id}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-[#238636] py-2 text-xs font-medium text-white transition hover:bg-[#2ea043] disabled:opacity-50"
-                      >
-                        {uploadingId === project.id ? (
-                          <>
-                            <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 12 0 12 0v0a8 8 0 01-8 8H0z" />
-                            </svg>
-                            Enviando...
-                          </>
-                        ) : (
-                          <>
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            Importar mídias
-                          </>
-                        )}
-                      </button>
-                      <a
-                        href={`/dashboard/projects/${project.id}/media`}
-                        className="flex items-center justify-center rounded-md border border-[#30363d] px-3 py-2 text-xs text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
-                        title="Gerenciar e reordenar"
-                      >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
+                  <a
+                    href={`/dashboard/projects/${project.id}/media`}
+                    className="mt-3 flex items-center gap-1.5 text-xs text-[#484f58] transition hover:text-[#58a6ff]"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Gerenciar mídias
+                  </a>
                 )}
 
                 <div className="mt-4 flex items-center gap-2 border-t border-[#21262d] pt-4">
@@ -409,116 +411,237 @@ export default function DashboardPage() {
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
           <div className="w-full max-w-lg rounded-2xl border border-[#21262d] bg-[#161b22] p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[#f0f6fc]">
-                {editing ? "Editar projeto" : "Novo projeto"}
-              </h2>
-              <button onClick={closeModal} className="text-[#484f58] transition hover:text-[#f0f6fc]">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Field label="Nome *">
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Ex: Dashboard CRM"
-                  className={inputClass}
-                  required
-                />
-              </Field>
+            {/* ── ETAPA 1: formulário ── */}
+            {modalStep === "form" && (
+              <>
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="text-base font-semibold text-[#f0f6fc]">
+                    {editing ? "Editar projeto" : "Novo projeto"}
+                  </h2>
+                  <button onClick={closeModal} className="text-[#484f58] transition hover:text-[#f0f6fc]">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
-              <Field label="Descrição *">
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Descreva o projeto..."
-                  rows={3}
-                  className={`${inputClass} resize-none`}
-                  required
-                />
-              </Field>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Field label="Nome *">
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Ex: Dashboard CRM"
+                      className={inputClass}
+                      required
+                    />
+                  </Field>
 
-              <Field label="Linguagens * (separadas por vírgula)">
-                <input
-                  type="text"
-                  value={form.languages}
-                  onChange={(e) => setForm({ ...form, languages: e.target.value })}
-                  placeholder="Ex: Next.js, TypeScript, PostgreSQL"
-                  className={inputClass}
-                />
-                {languageTags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {languageTags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-[#0d1117] px-2 py-0.5 text-xs text-[#58a6ff]">
-                        {tag}
-                      </span>
-                    ))}
+                  <Field label="Descrição *">
+                    <textarea
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      placeholder="Descreva o projeto..."
+                      rows={3}
+                      className={`${inputClass} resize-none`}
+                      required
+                    />
+                  </Field>
+
+                  <Field label="Linguagens * (separadas por vírgula)">
+                    <input
+                      type="text"
+                      value={form.languages}
+                      onChange={(e) => setForm({ ...form, languages: e.target.value })}
+                      placeholder="Ex: Next.js, TypeScript, PostgreSQL"
+                      className={inputClass}
+                    />
+                    {languageTags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {languageTags.map((tag) => (
+                          <span key={tag} className="rounded-full bg-[#0d1117] px-2 py-0.5 text-xs text-[#58a6ff]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </Field>
+
+                  <Field label="Link *">
+                    <input
+                      type="text"
+                      value={form.link}
+                      onChange={(e) => setForm({ ...form, link: e.target.value })}
+                      placeholder="https://... ou #"
+                      className={inputClass}
+                      required
+                    />
+                  </Field>
+
+                  <Field label="Categoria *">
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value as ProjectCategory })}
+                      className={inputClass}
+                    >
+                      {CATEGORY_ORDER.map((cat) => (
+                        <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <label className="flex items-center gap-3 cursor-pointer select-none rounded-lg border border-[#30363d] p-3">
+                    <div
+                      onClick={() => setForm({ ...form, hasDetailsPage: !form.hasDetailsPage })}
+                      className={`relative shrink-0 h-5 w-9 rounded-full transition-colors ${form.hasDetailsPage ? "bg-[#238636]" : "bg-[#30363d]"}`}
+                    >
+                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.hasDetailsPage ? "translate-x-4" : "translate-x-0.5"}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#c9d1d9]">Página de detalhes</p>
+                      <p className="text-xs text-[#484f58]">
+                        {form.hasDetailsPage
+                          ? "Você poderá adicionar imagens e vídeos na próxima etapa"
+                          : "Ativa upload de mídias e cria uma página dedicada no portfólio"}
+                      </p>
+                    </div>
+                  </label>
+
+                  {formError && (
+                    <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">
+                      {formError}
+                    </p>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="flex-1 rounded-lg border border-[#30363d] py-2.5 text-sm text-[#8b949e] transition hover:text-[#f0f6fc]"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 rounded-lg bg-[#238636] py-2.5 text-sm font-medium text-white transition hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting
+                        ? "Salvando..."
+                        : form.hasDetailsPage && !editing
+                        ? "Salvar e adicionar mídias →"
+                        : editing
+                        ? "Salvar alterações"
+                        : "Criar projeto"}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* ── ETAPA 2: upload de mídias ── */}
+            {modalStep === "media" && (
+              <>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold text-[#f0f6fc]">Adicionar mídias</h2>
+                    <p className="mt-0.5 text-xs text-[#484f58]">
+                      Imagens e vídeos do projeto · máx. 6 arquivos · {uploadedMedia.length}/6
+                    </p>
+                  </div>
+                  <button onClick={closeModal} className="text-[#484f58] transition hover:text-[#f0f6fc]">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div
+                  className="mb-4 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#30363d] py-8 cursor-pointer transition hover:border-[#58a6ff] hover:bg-[#58a6ff]/5"
+                  onClick={() => uploadedMedia.length < 6 && uploadInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <div className="flex items-center gap-2 text-sm text-[#8b949e]">
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 12 0 12 0v0a8 8 0 01-8 8H0z" />
+                      </svg>
+                      Enviando...
+                    </div>
+                  ) : (
+                    <>
+                      <svg className="mb-3 h-8 w-8 text-[#484f58]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <p className="text-sm font-medium text-[#c9d1d9]">Clique para selecionar arquivos</p>
+                      <p className="mt-1 text-xs text-[#484f58]">JPG, PNG, WEBP, GIF, MP4, WEBM · máx. 50MB por arquivo</p>
+                      {uploadedMedia.length === 0 && (
+                        <p className="mt-2 text-xs text-amber-500">Pelo menos 1 imagem obrigatória</p>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {uploadError && (
+                  <p className="mb-4 rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">
+                    {uploadError}
+                  </p>
+                )}
+
+                {uploadedMedia.length > 0 && (
+                  <div className="mb-4 grid grid-cols-3 gap-2">
+                    {uploadedMedia.map((m, i) => {
+                      const src = m.url.startsWith("http") ? m.url : `${API_URL}${m.url}`;
+                      return (
+                        <div key={m.id} className="group relative aspect-video overflow-hidden rounded-lg bg-[#0d1117]">
+                          {m.type === "IMAGE" ? (
+                            <img src={src} alt={m.originalName} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <svg className="h-6 w-6 text-[#58a6ff]" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
+                          )}
+                          {i === 0 && (
+                            <span className="absolute bottom-0 left-0 right-0 bg-[#58a6ff]/80 py-0.5 text-center text-[9px] font-semibold text-white">
+                              CAPA
+                            </span>
+                          )}
+                          <button
+                            onClick={() => removeUploadedMedia(m.id)}
+                            className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-              </Field>
 
-              <Field label="Link *">
-                <input
-                  type="text"
-                  value={form.link}
-                  onChange={(e) => setForm({ ...form, link: e.target.value })}
-                  placeholder="https://... ou #"
-                  className={inputClass}
-                  required
-                />
-              </Field>
-
-              <Field label="Categoria *">
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as ProjectCategory })}
-                  className={inputClass}
-                >
-                  {CATEGORY_ORDER.map((cat) => (
-                    <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
-                  ))}
-                </select>
-              </Field>
-
-              <label className="flex items-center gap-3 cursor-pointer select-none">
-                <div
-                  onClick={() => setForm({ ...form, hasDetailsPage: !form.hasDetailsPage })}
-                  className={`relative h-5 w-9 rounded-full transition-colors ${form.hasDetailsPage ? "bg-[#238636]" : "bg-[#30363d]"}`}
-                >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.hasDetailsPage ? "translate-x-4" : "translate-x-0.5"}`} />
+                <div className="flex gap-3">
+                  {uploadedMedia.length < 6 && !uploading && (
+                    <button
+                      onClick={() => uploadInputRef.current?.click()}
+                      className="flex-1 rounded-lg border border-[#30363d] py-2.5 text-sm text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
+                    >
+                      + Adicionar mais
+                    </button>
+                  )}
+                  <button
+                    onClick={closeModal}
+                    className="flex-1 rounded-lg bg-[#238636] py-2.5 text-sm font-medium text-white transition hover:bg-[#2ea043]"
+                  >
+                    Concluir
+                  </button>
                 </div>
-                <span className="text-sm text-[#c9d1d9]">Criar página de detalhes</span>
-                <span className="text-xs text-[#484f58]">(habilita upload de mídias no card)</span>
-              </label>
+              </>
+            )}
 
-              {formError && (
-                <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">
-                  {formError}
-                </p>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 rounded-lg border border-[#30363d] py-2.5 text-sm text-[#8b949e] transition hover:text-[#f0f6fc]"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 rounded-lg bg-[#238636] py-2.5 text-sm font-medium text-white transition hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "Salvando..." : editing ? "Salvar alterações" : "Criar projeto"}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
