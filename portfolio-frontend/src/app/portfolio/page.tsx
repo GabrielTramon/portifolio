@@ -177,7 +177,9 @@ export default async function PortfolioPage() {
                   </h3>
                   <div className="grid gap-6 md:grid-cols-2">
                     {filtered.map((project) => {
-                      const hasLink = project.link !== "#";
+                      const detailHref = project.hasDetailsPage ? `/portfolio/${project.id}` : null;
+                      const externalHref = !project.hasDetailsPage && project.link !== "#" ? project.link : null;
+                      const isLinked = detailHref || externalHref;
                       const cardClass =
                         "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
                       const inner = (
@@ -186,7 +188,7 @@ export default async function PortfolioPage() {
                             <svg className="h-8 w-8 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
-                            {hasLink && (
+                            {isLinked && (
                               <svg className="h-4 w-4 text-[#484f58] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#8b949e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
@@ -203,13 +205,13 @@ export default async function PortfolioPage() {
                           </div>
                         </>
                       );
-                      return hasLink ? (
-                        <a key={project.id} href={project.link} target="_blank" rel="noopener noreferrer" className={cardClass}>
-                          {inner}
-                        </a>
-                      ) : (
-                        <div key={project.id} className={cardClass}>{inner}</div>
-                      );
+                      if (detailHref) {
+                        return <a key={project.id} href={detailHref} className={cardClass}>{inner}</a>;
+                      }
+                      if (externalHref) {
+                        return <a key={project.id} href={externalHref} target="_blank" rel="noopener noreferrer" className={cardClass}>{inner}</a>;
+                      }
+                      return <div key={project.id} className={cardClass}>{inner}</div>;
                     })}
                   </div>
                 </div>
