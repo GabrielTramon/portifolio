@@ -16,6 +16,7 @@ type FormData = {
   languages: string;
   link: string;
   category: ProjectCategory;
+  hasDetailsPage: boolean;
 };
 
 const emptyForm: FormData = {
@@ -24,6 +25,7 @@ const emptyForm: FormData = {
   languages: "",
   link: "",
   category: "PROFESSIONAL",
+  hasDetailsPage: false,
 };
 
 const categoryBadge: Record<ProjectCategory, string> = {
@@ -83,6 +85,7 @@ export default function DashboardPage() {
       languages: project.languages.join(", "),
       link: project.link,
       category: project.category,
+      hasDetailsPage: project.hasDetailsPage,
     });
     setFormError("");
     setModalOpen(true);
@@ -120,6 +123,7 @@ export default function DashboardPage() {
       languages,
       link: form.link.trim(),
       category: form.category,
+      hasDetailsPage: form.hasDetailsPage,
     };
 
     try {
@@ -320,7 +324,19 @@ export default function DashboardPage() {
                   </a>
                 )}
 
-                <div className="mt-4 flex items-center gap-2 border-t border-[#21262d] pt-4">
+                <div className="mt-4 space-y-2 border-t border-[#21262d] pt-4">
+                  {project.hasDetailsPage && (
+                    <a
+                      href={`/dashboard/projects/${project.id}/media`}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#30363d] py-1.5 text-xs text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Gerenciar mídias
+                    </a>
+                  )}
+                  <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEdit(project)}
                     className="flex-1 rounded-md border border-[#30363d] py-1.5 text-xs text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
@@ -352,6 +368,7 @@ export default function DashboardPage() {
                       Excluir
                     </button>
                   )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -446,6 +463,19 @@ export default function DashboardPage() {
                   ))}
                 </select>
               </Field>
+
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <div
+                  onClick={() => setForm({ ...form, hasDetailsPage: !form.hasDetailsPage })}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${form.hasDetailsPage ? "bg-[#238636]" : "bg-[#30363d]"}`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.hasDetailsPage ? "translate-x-4" : "translate-x-0.5"}`}
+                  />
+                </div>
+                <span className="text-sm text-[#c9d1d9]">Criar página de detalhes</span>
+                <span className="text-xs text-[#484f58]">(permite upload de mídias)</span>
+              </label>
 
               {formError && (
                 <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">
