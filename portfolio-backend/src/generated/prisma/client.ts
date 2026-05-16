@@ -49,3 +49,8 @@ export type User = Prisma.UserModel
  * 
  */
 export type Project = Prisma.ProjectModel
+/**
+ * Model ProjectMedia
+ * 
+ */
+export type ProjectMedia = Prisma.ProjectMediaModel
