@@ -149,6 +149,12 @@ export default function DashboardPage() {
       }
 
       closeModal();
+
+      if (!editing && json.data?.hasDetailsPage) {
+        router.push(`/dashboard/projects/${json.data.id}/media`);
+        return;
+      }
+
       fetchProjects();
     } catch {
       setFormError("Erro de conexão com o servidor.");
@@ -483,7 +489,19 @@ export default function DashboardPage() {
                 </p>
               )}
 
-              <div className="flex gap-3 pt-2">
+              {editing && editing.hasDetailsPage && (
+                <a
+                  href={`/dashboard/projects/${editing.id}/media`}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#30363d] py-2.5 text-sm text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Gerenciar mídias deste projeto
+                </a>
+              )}
+
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={closeModal}
