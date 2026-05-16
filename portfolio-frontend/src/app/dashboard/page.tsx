@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, FormEvent } from "react";
+import { useState, useEffect, useCallback, useRef, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   API_URL,
@@ -36,6 +36,8 @@ const categoryBadge: Record<ProjectCategory, string> = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -46,15 +48,14 @@ export default function DashboardPage() {
   const [formError, setFormError] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const token = () =>
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const fetchProjects = useCallback(async () => {
-    if (!token()) {
-      router.push("/login");
-      return;
-    }
+    if (!token()) { router.push("/login"); return; }
     try {
       const res = await fetch(`${API_URL}/projects`);
       const json = await res.json();
@@ -66,9 +67,7 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+  useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
   function openCreate() {
     setEditing(null);
@@ -101,10 +100,7 @@ export default function DashboardPage() {
     e.preventDefault();
     setFormError("");
 
-    const languages = form.languages
-      .split(",")
-      .map((l) => l.trim())
-      .filter(Boolean);
+    const languages = form.languages.split(",").map((l) => l.trim()).filter(Boolean);
 
     if (!form.name.trim() || !form.description.trim() || !form.link.trim()) {
       setFormError("Preencha todos os campos obrigatórios.");
@@ -117,28 +113,21 @@ export default function DashboardPage() {
 
     setSubmitting(true);
 
-    const payload = {
-      name: form.name.trim(),
-      description: form.description.trim(),
-      languages,
-      link: form.link.trim(),
-      category: form.category,
-      hasDetailsPage: form.hasDetailsPage,
-    };
-
     try {
-      const url = editing
-        ? `${API_URL}/projects/${editing.id}`
-        : `${API_URL}/projects`;
+      const url = editing ? `${API_URL}/projects/${editing.id}` : `${API_URL}/projects`;
       const method = editing ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token()}`,
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          description: form.description.trim(),
+          languages,
+          link: form.link.trim(),
+          category: form.category,
+          hasDetailsPage: form.hasDetailsPage,
+        }),
       });
 
       const json = await res.json();
@@ -149,12 +138,6 @@ export default function DashboardPage() {
       }
 
       closeModal();
-
-      if (!editing && json.data?.hasDetailsPage) {
-        router.push(`/dashboard/projects/${json.data.id}/media`);
-        return;
-      }
-
       fetchProjects();
     } catch {
       setFormError("Erro de conexão com o servidor.");
@@ -180,16 +163,46 @@ export default function DashboardPage() {
     }
   }
 
+  function triggerUpload(projectId: string) {
+    setUploadTargetId(projectId);
+    setTimeout(() => uploadInputRef.current?.click(), 0);
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !uploadTargetId) return;
+
+    setUploadingId(uploadTargetId);
+    setError("");
+
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append("files", file));
+
+    try {
+      const res = await fetch(`${API_URL}/projects/${uploadTargetId}/media`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token()}` },
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || "Erro ao fazer upload.");
+      }
+    } catch {
+      setError("Erro de conexão ao enviar arquivos.");
+    } finally {
+      setUploadingId(null);
+      setUploadTargetId(null);
+      if (uploadInputRef.current) uploadInputRef.current.value = "";
+    }
+  }
+
   function logout() {
     localStorage.removeItem("token");
     router.push("/login");
   }
 
-  const languageTags = form.languages
-    .split(",")
-    .map((l) => l.trim())
-    .filter(Boolean);
-
+  const languageTags = form.languages.split(",").map((l) => l.trim()).filter(Boolean);
   const stats = CATEGORY_ORDER.map((cat) => ({
     category: cat,
     count: projects.filter((p) => p.category === cat).length,
@@ -197,7 +210,15 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
-      {/* Header */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       <header className="border-b border-[#21262d] bg-[#0d1117]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
@@ -208,11 +229,7 @@ export default function DashboardPage() {
             <span className="text-sm text-[#8b949e]">dashboard</span>
           </div>
           <div className="flex items-center gap-4">
-            <a
-              href="/portfolio"
-              target="_blank"
-              className="text-xs text-[#8b949e] transition hover:text-[#f0f6fc]"
-            >
+            <a href="/portfolio" target="_blank" className="text-xs text-[#8b949e] transition hover:text-[#f0f6fc]">
               Ver portfólio ↗
             </a>
             <button
@@ -226,7 +243,6 @@ export default function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10">
-        {/* Error banner */}
         {error && (
           <div className="mb-6 flex items-center justify-between rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
             <span>{error}</span>
@@ -234,26 +250,19 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Stats */}
         <div className="mb-8 grid grid-cols-3 gap-4">
           {stats.map(({ category, count }) => (
-            <div
-              key={category}
-              className="rounded-xl border border-[#21262d] bg-[#161b22] p-5"
-            >
+            <div key={category} className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
               <p className="text-2xl font-bold text-[#f0f6fc]">{count}</p>
               <p className="mt-1 text-sm text-[#8b949e]">{CATEGORY_LABELS[category]}</p>
             </div>
           ))}
         </div>
 
-        {/* Toolbar */}
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-lg font-semibold text-[#f0f6fc]">
             Projetos
-            <span className="ml-2 font-mono text-sm font-normal text-[#484f58]">
-              ({projects.length})
-            </span>
+            <span className="ml-2 font-mono text-sm font-normal text-[#484f58]">({projects.length})</span>
           </h1>
           <button
             onClick={openCreate}
@@ -266,18 +275,12 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Projects grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-24 text-sm text-[#484f58]">
-            Carregando...
-          </div>
+          <div className="flex items-center justify-center py-24 text-sm text-[#484f58]">Carregando...</div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#21262d] py-24 text-center">
             <p className="text-[#8b949e]">Nenhum projeto cadastrado ainda.</p>
-            <button
-              onClick={openCreate}
-              className="mt-4 text-sm text-[#58a6ff] hover:underline"
-            >
+            <button onClick={openCreate} className="mt-4 text-sm text-[#58a6ff] hover:underline">
               Criar primeiro projeto →
             </button>
           </div>
@@ -289,12 +292,8 @@ export default function DashboardPage() {
                 className="flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-5 transition hover:border-[#30363d]"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-[#f0f6fc] leading-snug line-clamp-1">
-                    {project.name}
-                  </h3>
-                  <span
-                    className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${categoryBadge[project.category]}`}
-                  >
+                  <h3 className="font-semibold text-[#f0f6fc] leading-snug line-clamp-1">{project.name}</h3>
+                  <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${categoryBadge[project.category]}`}>
                     {CATEGORY_LABELS[project.category]}
                   </span>
                 </div>
@@ -305,10 +304,7 @@ export default function DashboardPage() {
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {project.languages.slice(0, 4).map((lang) => (
-                    <span
-                      key={lang}
-                      className="rounded-full bg-[#0d1117] px-2 py-0.5 text-xs text-[#58a6ff]"
-                    >
+                    <span key={lang} className="rounded-full bg-[#0d1117] px-2 py-0.5 text-xs text-[#58a6ff]">
                       {lang}
                     </span>
                   ))}
@@ -319,7 +315,7 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {project.link !== "#" && (
+                {project.link !== "#" && !project.hasDetailsPage && (
                   <a
                     href={project.link}
                     target="_blank"
@@ -330,26 +326,52 @@ export default function DashboardPage() {
                   </a>
                 )}
 
-                <div className="mt-4 space-y-2 border-t border-[#21262d] pt-4">
-                  {project.hasDetailsPage && (
-                    <a
-                      href={`/dashboard/projects/${project.id}/media`}
-                      className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#30363d] py-1.5 text-xs text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Gerenciar mídias
-                    </a>
-                  )}
-                  <div className="flex items-center gap-2">
+                {project.hasDetailsPage && (
+                  <div className="mt-4 rounded-lg border border-[#30363d] bg-[#0d1117] p-3">
+                    <p className="mb-2 text-xs font-medium text-[#8b949e]">Mídias do projeto</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => triggerUpload(project.id)}
+                        disabled={uploadingId === project.id}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-[#238636] py-2 text-xs font-medium text-white transition hover:bg-[#2ea043] disabled:opacity-50"
+                      >
+                        {uploadingId === project.id ? (
+                          <>
+                            <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 12 0 12 0v0a8 8 0 01-8 8H0z" />
+                            </svg>
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            Importar mídias
+                          </>
+                        )}
+                      </button>
+                      <a
+                        href={`/dashboard/projects/${project.id}/media`}
+                        className="flex items-center justify-center rounded-md border border-[#30363d] px-3 py-2 text-xs text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
+                        title="Gerenciar e reordenar"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4 flex items-center gap-2 border-t border-[#21262d] pt-4">
                   <button
                     onClick={() => openEdit(project)}
                     className="flex-1 rounded-md border border-[#30363d] py-1.5 text-xs text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
                   >
                     Editar
                   </button>
-
                   {pendingDeleteId === project.id ? (
                     <div className="flex flex-1 gap-1">
                       <button
@@ -374,7 +396,6 @@ export default function DashboardPage() {
                       Excluir
                     </button>
                   )}
-                  </div>
                 </div>
               </div>
             ))}
@@ -382,7 +403,6 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* Modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
@@ -393,10 +413,7 @@ export default function DashboardPage() {
               <h2 className="text-base font-semibold text-[#f0f6fc]">
                 {editing ? "Editar projeto" : "Novo projeto"}
               </h2>
-              <button
-                onClick={closeModal}
-                className="text-[#484f58] transition hover:text-[#f0f6fc]"
-              >
+              <button onClick={closeModal} className="text-[#484f58] transition hover:text-[#f0f6fc]">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -463,9 +480,7 @@ export default function DashboardPage() {
                   className={inputClass}
                 >
                   {CATEGORY_ORDER.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {CATEGORY_LABELS[cat]}
-                    </option>
+                    <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
                   ))}
                 </select>
               </Field>
@@ -475,30 +490,16 @@ export default function DashboardPage() {
                   onClick={() => setForm({ ...form, hasDetailsPage: !form.hasDetailsPage })}
                   className={`relative h-5 w-9 rounded-full transition-colors ${form.hasDetailsPage ? "bg-[#238636]" : "bg-[#30363d]"}`}
                 >
-                  <span
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.hasDetailsPage ? "translate-x-4" : "translate-x-0.5"}`}
-                  />
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.hasDetailsPage ? "translate-x-4" : "translate-x-0.5"}`} />
                 </div>
                 <span className="text-sm text-[#c9d1d9]">Criar página de detalhes</span>
-                <span className="text-xs text-[#484f58]">(permite upload de mídias)</span>
+                <span className="text-xs text-[#484f58]">(habilita upload de mídias no card)</span>
               </label>
 
               {formError && (
                 <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">
                   {formError}
                 </p>
-              )}
-
-              {editing && editing.hasDetailsPage && (
-                <a
-                  href={`/dashboard/projects/${editing.id}/media`}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#30363d] py-2.5 text-sm text-[#8b949e] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Gerenciar mídias deste projeto
-                </a>
               )}
 
               <div className="flex gap-3">
