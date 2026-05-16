@@ -1,6 +1,17 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003";
 
 export type ProjectCategory = "PROFESSIONAL" | "FREELANCE" | "PERSONAL";
+export type MediaType = "IMAGE" | "VIDEO";
+
+export interface ProjectMedia {
+  id: string;
+  projectId: string;
+  url: string;
+  type: MediaType;
+  order: number;
+  originalName: string;
+  createdAt: string;
+}
 
 export interface Project {
   id: string;
@@ -9,8 +20,13 @@ export interface Project {
   languages: string[];
   link: string;
   category: ProjectCategory;
+  hasDetailsPage: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProjectWithMedia extends Project {
+  media: ProjectMedia[];
 }
 
 export const CATEGORY_LABELS: Record<ProjectCategory, string> = {
