@@ -178,7 +178,7 @@ export default async function PortfolioPage() {
                   <div className="grid gap-6 md:grid-cols-2">
                     {filtered.map((project) => {
                       const detailHref = project.hasDetailsPage ? `/portfolio/${toSlug(project.name)}` : null;
-                      const externalHref = !project.hasDetailsPage && project.link !== "#" ? project.link : null;
+                      const externalHref = !project.hasDetailsPage && project.link.startsWith("http") ? project.link : null;
                       const isLinked = detailHref || externalHref;
                       const cardClass =
                         "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
