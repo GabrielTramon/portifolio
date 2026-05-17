@@ -1,14 +1,39 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { API_URL, CATEGORY_LABELS, type ProjectWithMedia, type ProjectMedia } from "../../../lib/api";
+import {
+  API_URL,
+  CATEGORY_LABELS,
+  toSlug,
+  type Project,
+  type ProjectMedia,
+  type ProjectWithMedia,
+} from "../../../lib/api";
 import MediaCarousel from "./MediaCarousel";
 
-async function getProject(id: string): Promise<ProjectWithMedia | null> {
+async function getProjectBySlug(slug: string): Promise<ProjectWithMedia | null> {
   try {
-    const res = await fetch(`${API_URL}/projects/${id}`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/projects`, { cache: "no-store" });
     if (!res.ok) return null;
+
     const json = await res.json();
-    return json.data ?? null;
+    const projects: Project[] = json.data ?? [];
+
+    const project = projects.find(
+      (p) => p.hasDetailsPage && toSlug(p.name) === slug,
+    );
+    if (!project) return null;
+
+    const mediaRes = await fetch(`${API_URL}/projects/${project.id}/media`, {
+      cache: "no-store",
+    });
+
+    let media: ProjectMedia[] = [];
+    if (mediaRes.ok) {
+      const mediaJson = await mediaRes.json();
+      media = mediaJson.data ?? [];
+    }
+
+    return { ...project, media };
   } catch {
     return null;
   }
@@ -17,10 +42,10 @@ async function getProject(id: string): Promise<ProjectWithMedia | null> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const project = await getProject(id);
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
   if (!project) return { title: "Projeto não encontrado" };
   return {
     title: `${project.name} — Gabriel Tramontin`,
@@ -31,19 +56,19 @@ export async function generateMetadata({
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
-  const project = await getProject(id);
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
 
-  if (!project || !project.hasDetailsPage) notFound();
+  if (!project) notFound();
 
   const images = project.media.filter((m) => m.type === "IMAGE");
   const videos = project.media.filter((m) => m.type === "VIDEO");
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
-      <header className="border-b border-[#21262d] bg-[#0d1117]/90 backdrop-blur-sm sticky top-0 z-10">
+      <header className="sticky top-0 z-10 border-b border-[#21262d] bg-[#0d1117]/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <a
             href="/portfolio"
@@ -67,19 +92,19 @@ export default async function ProjectDetailPage({
           </div>
         )}
 
-        <div className="grid gap-12 lg:grid-cols-3">
+        <div className="grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-8">
             <div>
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <span className="font-mono text-xs uppercase tracking-widest text-[#58a6ff]">
-                  {CATEGORY_LABELS[project.category]}
-                </span>
-              </div>
-              <h1 className="text-3xl font-bold text-[#f0f6fc] sm:text-4xl">{project.name}</h1>
+              <span className="font-mono text-xs uppercase tracking-widest text-[#58a6ff]">
+                {CATEGORY_LABELS[project.category]}
+              </span>
+              <h1 className="mt-2 text-3xl font-bold text-[#f0f6fc] sm:text-4xl">
+                {project.name}
+              </h1>
             </div>
 
             <div>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-[#484f58]">
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#484f58]">
                 Sobre o projeto
               </h2>
               <p className="leading-relaxed text-[#8b949e] whitespace-pre-line">
@@ -89,20 +114,32 @@ export default async function ProjectDetailPage({
 
             {images.length > 1 && (
               <div>
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#484f58]">
+                <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#484f58]">
                   Galeria
                 </h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {images.slice(1).map((img) => (
-                    <GalleryImage key={img.id} media={img} />
-                  ))}
+                  {images.slice(1).map((img) => {
+                    const src = img.url.startsWith("http") ? img.url : `${API_URL}${img.url}`;
+                    return (
+                      <div
+                        key={img.id}
+                        className="aspect-video overflow-hidden rounded-lg border border-[#21262d] bg-[#161b22]"
+                      >
+                        <img
+                          src={src}
+                          alt={img.originalName}
+                          className="h-full w-full object-cover transition hover:scale-105 duration-300"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
             {videos.length > 0 && (
               <div>
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-[#484f58]">
+                <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#484f58]">
                   Vídeos
                 </h2>
                 <div className="space-y-4">
@@ -122,7 +159,7 @@ export default async function ProjectDetailPage({
             )}
           </div>
 
-          <aside className="space-y-6">
+          <aside className="space-y-5">
             <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
               <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#484f58]">
                 Tecnologias
@@ -152,29 +189,9 @@ export default async function ProjectDetailPage({
                 Ver projeto
               </a>
             )}
-
-            <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#484f58]">
-                Categoria
-              </h3>
-              <p className="text-sm text-[#c9d1d9]">{CATEGORY_LABELS[project.category]}</p>
-            </div>
           </aside>
         </div>
       </main>
-    </div>
-  );
-}
-
-function GalleryImage({ media }: { media: ProjectMedia }) {
-  const src = media.url.startsWith("http") ? media.url : `${API_URL}${media.url}`;
-  return (
-    <div className="aspect-video overflow-hidden rounded-lg border border-[#21262d] bg-[#161b22]">
-      <img
-        src={src}
-        alt={media.originalName}
-        className="h-full w-full object-cover transition hover:scale-105 duration-300"
-      />
     </div>
   );
 }

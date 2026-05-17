@@ -59,44 +59,44 @@ export default function MediaCarousel({ media }: { media: ProjectMedia[] }) {
       </div>
 
       {media.length > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
-          {media.map((m, i) => (
-            <button
-              key={m.id}
-              onClick={() => setCurrent(i)}
-              className={`h-1.5 rounded-full transition-all ${
-                i === current ? "w-6 bg-[#58a6ff]" : "w-1.5 bg-[#30363d] hover:bg-[#484f58]"
-              }`}
-            />
-          ))}
-        </div>
-      )}
-
-      {media.length > 1 && (
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-          {media.map((m, i) => {
-            const thumbUrl = m.url.startsWith("http") ? m.url : `${API_URL}${m.url}`;
-            return (
+        <>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {media.map((m, i) => (
               <button
                 key={m.id}
                 onClick={() => setCurrent(i)}
-                className={`shrink-0 h-14 w-20 overflow-hidden rounded-lg border-2 transition ${
-                  i === current ? "border-[#58a6ff]" : "border-transparent opacity-50 hover:opacity-75"
+                className={`h-1.5 rounded-full transition-all ${
+                  i === current ? "w-6 bg-[#58a6ff]" : "w-1.5 bg-[#30363d] hover:bg-[#484f58]"
                 }`}
-              >
-                {m.type === "IMAGE" ? (
-                  <img src={thumbUrl} alt={m.originalName} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-[#161b22]">
-                    <svg className="h-5 w-5 text-[#58a6ff]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+              />
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+            {media.map((m, i) => {
+              const thumbUrl = m.url.startsWith("http") ? m.url : `${API_URL}${m.url}`;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setCurrent(i)}
+                  className={`shrink-0 h-14 w-20 overflow-hidden rounded-lg border-2 transition ${
+                    i === current ? "border-[#58a6ff]" : "border-transparent opacity-50 hover:opacity-75"
+                  }`}
+                >
+                  {m.type === "IMAGE" ? (
+                    <img src={thumbUrl} alt={m.originalName} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-[#161b22]">
+                      <svg className="h-5 w-5 text-[#58a6ff]" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

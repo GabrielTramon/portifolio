@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { API_URL, CATEGORY_LABELS, CATEGORY_ORDER, type Project } from "../../lib/api";
+import { API_URL, CATEGORY_LABELS, CATEGORY_ORDER, toSlug, type Project } from "../../lib/api";
 
 export const metadata: Metadata = {
   title: "Gabriel Tramontin — Desenvolvedor Full Stack",
@@ -177,7 +177,7 @@ export default async function PortfolioPage() {
                   </h3>
                   <div className="grid gap-6 md:grid-cols-2">
                     {filtered.map((project) => {
-                      const detailHref = project.hasDetailsPage ? `/portfolio/${project.id}` : null;
+                      const detailHref = project.hasDetailsPage ? `/portfolio/${toSlug(project.name)}` : null;
                       const externalHref = !project.hasDetailsPage && project.link !== "#" ? project.link : null;
                       const isLinked = detailHref || externalHref;
                       const cardClass =
