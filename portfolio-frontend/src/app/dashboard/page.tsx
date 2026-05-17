@@ -116,7 +116,7 @@ export default function DashboardPage() {
     fetchProjects();
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError("");
 
@@ -193,14 +193,28 @@ export default function DashboardPage() {
         headers: { Authorization: `Bearer ${token()}` },
         body: formData,
       });
-      const json = await res.json();
-      if (!res.ok) {
-        setUploadError(json.error || "Erro ao fazer upload.");
+
+      const text = await res.text();
+
+      let json: { data?: ProjectMedia[]; error?: string };
+      try {
+        json = JSON.parse(text);
+      } catch {
+        setUploadError(`Resposta inválida do servidor (${res.status}): ${text.slice(0, 120)}`);
         return;
       }
-      setUploadedMedia((prev) => [...prev, ...(json.data as ProjectMedia[])]);
-    } catch {
-      setUploadError("Erro de conexão ao enviar arquivos.");
+
+      if (!res.ok) {
+        setUploadError(json.error || `Erro ${res.status} ao fazer upload.`);
+        return;
+      }
+
+      setUploadedMedia((prev) => [...prev, ...(json.data ?? [])]);
+    } catch (err) {
+      const msg = err instanceof TypeError
+        ? `Backend inacessível em ${API_URL}. Verifique se está rodando.`
+        : `Erro: ${err instanceof Error ? err.message : String(err)}`;
+      setUploadError(msg);
     } finally {
       setUploading(false);
       if (uploadInputRef.current) uploadInputRef.current.value = "";
