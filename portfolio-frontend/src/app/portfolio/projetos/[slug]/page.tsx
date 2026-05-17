@@ -7,7 +7,7 @@ import {
   type Project,
   type ProjectMedia,
   type ProjectWithMedia,
-} from "../../../lib/api";
+} from "../../../../lib/api";
 import MediaCarousel from "./MediaCarousel";
 
 async function getProjectBySlug(slug: string): Promise<ProjectWithMedia | null> {

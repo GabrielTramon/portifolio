@@ -178,7 +178,7 @@ export default async function PortfolioPage() {
                   <div className="grid gap-6 md:grid-cols-2">
                     {filtered.map((project) => {
                       const detailHref = project.hasDetailsPage
-                        ? `/portfolio/${toSlug(project.name)}`
+                        ? `/portfolio/projetos/${toSlug(project.name)}`
                         : null;
                       const externalLink = project.link !== "#" ? project.link : null;
                       const cardHref = detailHref ?? externalLink;
