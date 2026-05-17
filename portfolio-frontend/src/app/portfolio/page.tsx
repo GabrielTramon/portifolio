@@ -177,9 +177,11 @@ export default async function PortfolioPage() {
                   </h3>
                   <div className="grid gap-6 md:grid-cols-2">
                     {filtered.map((project) => {
-                      const detailHref = project.hasDetailsPage ? `/portfolio/${toSlug(project.name)}` : null;
-                      const externalHref = !project.hasDetailsPage && project.link !== "#" ? project.link : null;
-                      const isLinked = detailHref || externalHref;
+                      const detailHref = project.hasDetailsPage
+                        ? `/portfolio/${toSlug(project.name)}`
+                        : null;
+                      const externalLink = project.link !== "#" ? project.link : null;
+                      const cardHref = detailHref ?? externalLink;
                       const cardClass =
                         "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
                       const inner = (
@@ -188,7 +190,7 @@ export default async function PortfolioPage() {
                             <svg className="h-8 w-8 text-[#58a6ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
-                            {isLinked && (
+                            {cardHref && (
                               <svg className="h-4 w-4 text-[#484f58] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#8b949e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
@@ -203,13 +205,27 @@ export default async function PortfolioPage() {
                               </span>
                             ))}
                           </div>
+                          {detailHref && externalLink && (
+                            <a
+                              href={externalLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-4 flex items-center gap-1.5 text-xs text-[#484f58] transition hover:text-[#8b949e]"
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              Ver projeto
+                            </a>
+                          )}
                         </>
                       );
                       if (detailHref) {
                         return <a key={project.id} href={detailHref} className={cardClass}>{inner}</a>;
                       }
-                      if (externalHref) {
-                        return <a key={project.id} href={externalHref} target="_blank" rel="noopener noreferrer" className={cardClass}>{inner}</a>;
+                      if (externalLink) {
+                        return <a key={project.id} href={externalLink} target="_blank" rel="noopener noreferrer" className={cardClass}>{inner}</a>;
                       }
                       return <div key={project.id} className={cardClass}>{inner}</div>;
                     })}
