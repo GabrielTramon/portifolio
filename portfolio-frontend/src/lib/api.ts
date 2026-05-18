@@ -3,6 +3,13 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003
 export type ProjectCategory = "PROFESSIONAL" | "FREELANCE" | "PERSONAL";
 export type MediaType = "IMAGE" | "VIDEO";
 
+export interface Tool {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProjectMedia {
   id: string;
   projectId: string;
@@ -17,8 +24,8 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  languages: string[];
-  link: string;
+  tools: Array<{ id: string; name: string }>;
+  link: string | null;
   category: ProjectCategory;
   hasDetailsPage: boolean;
   createdAt: string;
