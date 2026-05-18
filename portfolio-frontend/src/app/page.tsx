@@ -40,10 +40,10 @@ export default async function PortfolioPage() {
           <span className="font-mono text-sm font-semibold text-[#58a6ff]">
             gabriel<span className="text-[#f0f6fc]">.dev</span>
           </span>
-          <div className="flex items-center gap-6 text-sm text-[#8b949e]">
-            <a href="#sobre" className="transition hover:text-[#f0f6fc]">Sobre</a>
-            <a href="#stack" className="transition hover:text-[#f0f6fc]">Stack</a>
-            <a href="#projetos" className="transition hover:text-[#f0f6fc]">Projetos</a>
+          <div className="flex items-center gap-4 text-sm text-[#8b949e]">
+            <a href="#sobre" className="hidden sm:block transition hover:text-[#f0f6fc]">Sobre</a>
+            <a href="#stack" className="hidden sm:block transition hover:text-[#f0f6fc]">Stack</a>
+            <a href="#projetos" className="hidden sm:block transition hover:text-[#f0f6fc]">Projetos</a>
             <a
               href="#contato"
               className="rounded-md border border-[#30363d] px-4 py-1.5 transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
@@ -127,16 +127,16 @@ export default async function PortfolioPage() {
                 entregas previsíveis. Atualmente cursando Engenharia de Software na UNISATC.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {[
                 { label: "Experiência", value: "1+ ano" },
                 { label: "Sistemas em produção", value: "4+" },
                 { label: "Atuação", value: "Full-Stack" },
                 { label: "Localização", value: "Criciúma/SC" },
               ].map((item) => (
-                <div key={item.label} className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
-                  <p className="text-2xl font-bold text-[#f0f6fc]">{item.value}</p>
-                  <p className="mt-1 text-sm text-[#8b949e]">{item.label}</p>
+                <div key={item.label} className="rounded-xl border border-[#21262d] bg-[#161b22] p-3 sm:p-5">
+                  <p className="text-lg font-bold text-[#f0f6fc] sm:text-2xl">{item.value}</p>
+                  <p className="mt-1 text-xs text-[#8b949e] sm:text-sm">{item.label}</p>
                 </div>
               ))}
             </div>
