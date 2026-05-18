@@ -19,28 +19,26 @@ export function validateCreateProject(body: unknown): CreateProjectDTO {
     throw new AppError("description is required");
   }
   if (
-    !Array.isArray(data.languages) ||
-    data.languages.length === 0 ||
-    !data.languages.every((l) => typeof l === "string")
+    !Array.isArray(data.toolIds) ||
+    !data.toolIds.every((id) => typeof id === "string")
   ) {
-    throw new AppError("languages must be a non-empty array of strings");
-  }
-  if (!data.link || typeof data.link !== "string" || !data.link.trim()) {
-    throw new AppError("link is required");
+    throw new AppError("toolIds must be an array of strings");
   }
   if (!isValidCategory(data.category)) {
     throw new AppError(`category must be one of: ${validCategories.join(", ")}`);
   }
-
+  if (data.link !== undefined && data.link !== null && typeof data.link !== "string") {
+    throw new AppError("link must be a string or null");
+  }
   if (data.hasDetailsPage !== undefined && typeof data.hasDetailsPage !== "boolean") {
-    throw new AppError("hasDetailsPage deve ser boolean");
+    throw new AppError("hasDetailsPage must be boolean");
   }
 
   return {
     name: data.name.trim(),
     description: data.description.trim(),
-    languages: data.languages as string[],
-    link: data.link.trim(),
+    toolIds: data.toolIds as string[],
+    link: data.link ? String(data.link).trim() || null : null,
     category: data.category,
     hasDetailsPage: typeof data.hasDetailsPage === "boolean" ? data.hasDetailsPage : false,
   };
@@ -64,22 +62,18 @@ export function validateUpdateProject(body: unknown): UpdateProjectDTO {
     dto.description = data.description.trim();
   }
 
-  if (data.languages !== undefined) {
+  if (data.toolIds !== undefined) {
     if (
-      !Array.isArray(data.languages) ||
-      data.languages.length === 0 ||
-      !data.languages.every((l) => typeof l === "string")
+      !Array.isArray(data.toolIds) ||
+      !data.toolIds.every((id) => typeof id === "string")
     ) {
-      throw new AppError("languages must be a non-empty array of strings");
+      throw new AppError("toolIds must be an array of strings");
     }
-    dto.languages = data.languages as string[];
+    dto.toolIds = data.toolIds as string[];
   }
 
   if (data.link !== undefined) {
-    if (typeof data.link !== "string" || !data.link.trim()) {
-      throw new AppError("link must be a non-empty string");
-    }
-    dto.link = data.link.trim();
+    dto.link = data.link ? String(data.link).trim() || null : null;
   }
 
   if (data.category !== undefined) {
@@ -91,7 +85,7 @@ export function validateUpdateProject(body: unknown): UpdateProjectDTO {
 
   if (data.hasDetailsPage !== undefined) {
     if (typeof data.hasDetailsPage !== "boolean") {
-      throw new AppError("hasDetailsPage deve ser boolean");
+      throw new AppError("hasDetailsPage must be boolean");
     }
     dto.hasDetailsPage = data.hasDetailsPage;
   }

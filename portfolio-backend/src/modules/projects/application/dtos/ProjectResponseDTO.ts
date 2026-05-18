@@ -6,8 +6,8 @@ export interface ProjectResponseDTO {
   id: string;
   name: string;
   description: string;
-  languages: string[];
-  link: string;
+  tools: Array<{ id: string; name: string }>;
+  link: string | null;
   category: ProjectCategory;
   hasDetailsPage: boolean;
   createdAt: Date;
@@ -23,7 +23,7 @@ export function toProjectResponseDTO(project: Project): ProjectResponseDTO {
     id: project.id,
     name: project.name,
     description: project.description,
-    languages: project.languages,
+    tools: project.tools,
     link: project.link,
     category: project.category,
     hasDetailsPage: project.hasDetailsPage,

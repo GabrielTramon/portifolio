@@ -50,6 +50,11 @@ export type User = Prisma.UserModel
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model Tool
+ * 
+ */
+export type Tool = Prisma.ToolModel
+/**
  * Model ProjectMedia
  * 
  */

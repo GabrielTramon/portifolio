@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import authRouter from "./routes/auth";
 import projectRouter from "./modules/projects/presentation/routes/projectRoutes";
+import toolRouter from "./modules/tools/presentation/routes/toolRoutes";
 import { errorHandler } from "./shared/errors/errorHandler";
 
 const app = express();
@@ -32,6 +33,7 @@ app.get("/", (_req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/projects", projectRouter);
+app.use("/tools", toolRouter);
 
 app.use(errorHandler);
 

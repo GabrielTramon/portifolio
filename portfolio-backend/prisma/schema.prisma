@@ -34,13 +34,21 @@ model Project {
   id             String          @id @default(cuid())
   name           String
   description    String
-  languages      String[]
-  link           String
+  link           String?
   category       ProjectCategory
   hasDetailsPage Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   media          ProjectMedia[]
+  tools          Tool[]
+}
+
+model Tool {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  projects  Project[]
 }
 
 model ProjectMedia {

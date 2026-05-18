@@ -4,8 +4,8 @@ import { ProjectCategory } from "../enums/ProjectCategory";
 export interface CreateProjectData {
   name: string;
   description: string;
-  languages: string[];
-  link: string;
+  toolIds: string[];
+  link?: string | null;
   category: ProjectCategory;
   hasDetailsPage?: boolean;
 }
@@ -13,8 +13,8 @@ export interface CreateProjectData {
 export interface UpdateProjectData {
   name?: string;
   description?: string;
-  languages?: string[];
-  link?: string;
+  toolIds?: string[];
+  link?: string | null;
   category?: ProjectCategory;
   hasDetailsPage?: boolean;
 }
