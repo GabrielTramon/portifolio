@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { API_URL, type ProjectMedia } from "../../../../lib/api";
+import { API_URL, type ProjectMedia } from "../../../lib/api";
 
 export default function MediaCarousel({ media }: { media: ProjectMedia[] }) {
   const [current, setCurrent] = useState(0);

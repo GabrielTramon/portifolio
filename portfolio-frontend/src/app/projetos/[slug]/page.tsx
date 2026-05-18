@@ -7,7 +7,7 @@ import {
   type Project,
   type ProjectMedia,
   type ProjectWithMedia,
-} from "../../../../lib/api";
+} from "../../../lib/api";
 import MediaCarousel from "./MediaCarousel";
 
 async function getProjectBySlug(slug: string): Promise<ProjectWithMedia | null> {
@@ -71,7 +71,7 @@ export default async function ProjectDetailPage({
       <header className="sticky top-0 z-10 border-b border-[#21262d] bg-[#0d1117]/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <a
-            href="/portfolio"
+            href="/"
             className="flex items-center gap-2 text-sm text-[#8b949e] transition hover:text-[#f0f6fc]"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
