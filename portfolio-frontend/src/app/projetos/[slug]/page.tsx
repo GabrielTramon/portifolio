@@ -165,18 +165,18 @@ export default async function ProjectDetailPage({
                 Tecnologias
               </h3>
               <div className="flex flex-wrap gap-2">
-                {project.languages.map((lang) => (
+                {project.tools.map((tool) => (
                   <span
-                    key={lang}
+                    key={tool.id}
                     className="rounded-lg border border-[#21262d] bg-[#0d1117] px-3 py-1.5 font-mono text-xs text-[#58a6ff]"
                   >
-                    {lang}
+                    {tool.name}
                   </span>
                 ))}
               </div>
             </div>
 
-            {project.link !== "#" && (
+            {project.link && (
               <a
                 href={project.link}
                 target="_blank"

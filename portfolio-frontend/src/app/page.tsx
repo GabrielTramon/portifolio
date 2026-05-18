@@ -180,7 +180,7 @@ export default async function PortfolioPage() {
                       const detailHref = project.hasDetailsPage
                         ? `/projetos/${toSlug(project.name)}`
                         : null;
-                      const externalLink = project.link !== "#" ? project.link : null;
+                      const externalLink = project.link || null;
                       const cardHref = detailHref ?? externalLink;
                       const cardClass =
                         "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
@@ -199,9 +199,9 @@ export default async function PortfolioPage() {
                           <h3 className="mt-4 font-semibold text-[#f0f6fc]">{project.name}</h3>
                           <p className="mt-2 flex-1 text-sm leading-relaxed text-[#8b949e]">{project.description}</p>
                           <div className="mt-5 flex flex-wrap gap-2">
-                            {project.languages.map((lang) => (
-                              <span key={lang} className="rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
-                                {lang}
+                            {project.tools.map((tool) => (
+                              <span key={tool.id} className="rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
+                                {tool.name}
                               </span>
                             ))}
                           </div>
