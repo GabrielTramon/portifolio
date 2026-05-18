@@ -39,7 +39,7 @@ export class PrismaProjectRepository implements IProjectRepository {
     const records = await prisma.project.findMany({
       orderBy: { createdAt: "desc" },
     });
-    return records.map((r) => this.toDomain(r));
+    return records.map((r: PrismaProjectRecord) => this.toDomain(r));
   }
 
   async findById(id: string): Promise<Project | null> {
@@ -53,7 +53,7 @@ export class PrismaProjectRepository implements IProjectRepository {
       where: { hasDetailsPage: true },
       orderBy: { createdAt: "desc" },
     });
-    return records.map((r) => this.toDomain(r));
+    return records.map((r: PrismaProjectRecord) => this.toDomain(r));
   }
 
   async update(id: string, data: UpdateProjectData): Promise<Project> {

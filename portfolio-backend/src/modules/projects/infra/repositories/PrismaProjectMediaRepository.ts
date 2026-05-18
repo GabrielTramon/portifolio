@@ -37,7 +37,7 @@ export class PrismaProjectMediaRepository implements IProjectMediaRepository {
       where: { projectId },
       orderBy: { order: "asc" },
     });
-    return records.map((r) => this.toDomain(r));
+    return records.map((r: PrismaMediaRecord) => this.toDomain(r));
   }
 
   async findById(id: string): Promise<ProjectMedia | null> {
