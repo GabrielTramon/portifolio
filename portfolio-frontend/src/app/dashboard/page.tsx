@@ -655,56 +655,36 @@ export default function DashboardPage() {
                 />
               </Field>
 
-              <Field label="Ferramentas">
-                {selectedTools.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-1.5">
-                    {selectedTools.map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => toggleTool(t.id)}
-                        className="flex items-center gap-1 rounded-full bg-[#58a6ff]/15 px-2.5 py-0.5 text-xs text-[#58a6ff] transition hover:bg-red-900/30 hover:text-red-400"
-                      >
-                        {t.name}
-                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <Field label={`Ferramentas${selectedTools.length > 0 ? ` (${selectedTools.length})` : ""}`}>
                 <input
                   type="text"
                   value={toolSearch}
                   onChange={(e) => setToolSearch(e.target.value)}
-                  placeholder="Buscar ferramenta..."
-                  className={inputClass}
+                  placeholder="Filtrar..."
+                  className={`${inputClass} mb-2`}
                 />
-                {toolSearch && (
-                  <div className="mt-1 max-h-36 overflow-y-auto rounded-lg border border-[#30363d] bg-[#0d1117]">
-                    {filteredTools.length === 0 ? (
-                      <p className="px-3 py-2 text-xs text-[#484f58]">Nenhuma ferramenta encontrada</p>
-                    ) : (
-                      filteredTools.map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => { toggleTool(t.id); setToolSearch(""); }}
-                          className={`flex w-full items-center justify-between px-3 py-2 text-sm transition hover:bg-[#161b22] ${
-                            projectForm.toolIds.includes(t.id) ? "text-[#58a6ff]" : "text-[#c9d1d9]"
-                          }`}
-                        >
-                          {t.name}
-                          {projectForm.toolIds.includes(t.id) && (
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2 rounded-lg border border-[#30363d] bg-[#0d1117] p-3 max-h-36 overflow-y-auto">
+                  {filteredTools.length === 0 && (
+                    <p className="text-xs text-[#484f58]">Nenhuma ferramenta encontrada</p>
+                  )}
+                  {filteredTools.map((t) => {
+                    const selected = projectForm.toolIds.includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleTool(t.id)}
+                        className={`rounded-full border px-3 py-1 text-xs font-mono transition ${
+                          selected
+                            ? "border-[#58a6ff] bg-[#58a6ff]/20 text-[#58a6ff]"
+                            : "border-[#30363d] text-[#8b949e] hover:border-[#58a6ff] hover:text-[#58a6ff]"
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </Field>
 
               <Field label="Link">

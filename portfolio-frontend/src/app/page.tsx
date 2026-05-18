@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
-import { API_URL, CATEGORY_LABELS, CATEGORY_ORDER, toSlug, type Project } from "../lib/api";
+import { API_URL, CATEGORY_LABELS, CATEGORY_ORDER, toSlug, type Project, type Tool } from "../lib/api";
 
 export const metadata: Metadata = {
   title: "Gabriel Tramontin — Desenvolvedor Full Stack",
   description:
     "Desenvolvedor Full Stack com mais de 1 ano de experiência entregando sistemas web em produção com Next.js, Node.js, TypeScript e PostgreSQL.",
 };
-
-const skills = [
-  "TypeScript", "JavaScript", "SQL", "React.js", "Next.js", "Tailwind CSS",
-  "shadcn/ui", "React Native", "Node.js", "Express", "NestJS", "APIs RESTful",
-  "PostgreSQL", "MySQL", "Prisma ORM", "Docker", "GitHub Actions", "Vercel",
-  "Railway", "AWS", "AWS Amplify", "Git", "n8n",
-];
 
 async function fetchProjects(): Promise<Project[]> {
   try {
@@ -25,8 +18,19 @@ async function fetchProjects(): Promise<Project[]> {
   }
 }
 
+async function fetchTools(): Promise<Tool[]> {
+  try {
+    const res = await fetch(`${API_URL}/tools`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function PortfolioPage() {
-  const projects = await fetchProjects();
+  const [projects, tools] = await Promise.all([fetchProjects(), fetchTools()]);
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9]">
@@ -146,12 +150,12 @@ export default async function PortfolioPage() {
           <SectionLabel>Stack</SectionLabel>
           <h2 className="mt-4 text-3xl font-bold text-[#f0f6fc]">O que uso no dia a dia</h2>
           <div className="mt-10 flex flex-wrap gap-3">
-            {skills.map((skill) => (
+            {tools.map((tool) => (
               <span
-                key={skill}
+                key={tool.id}
                 className="rounded-lg border border-[#21262d] bg-[#161b22] px-4 py-2 font-mono text-sm text-[#c9d1d9] transition hover:border-[#58a6ff] hover:text-[#58a6ff]"
               >
-                {skill}
+                {tool.name}
               </span>
             ))}
           </div>
