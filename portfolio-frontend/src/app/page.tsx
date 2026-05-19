@@ -201,13 +201,24 @@ export default async function PortfolioPage() {
                             )}
                           </div>
                           <h3 className="mt-4 font-semibold text-[#f0f6fc]">{project.name}</h3>
-                          <p className="mt-2 flex-1 text-sm leading-relaxed text-[#8b949e]">{project.description}</p>
-                          <div className="mt-5 flex flex-wrap gap-2">
-                            {project.tools.map((tool) => (
-                              <span key={tool.id} className="rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
-                                {tool.name}
-                              </span>
-                            ))}
+                          <p className="mt-2 flex-1 text-sm leading-relaxed text-[#8b949e] line-clamp-3">
+                            {project.description.length > 120
+                              ? project.description.slice(0, 120) + "…"
+                              : project.description}
+                          </p>
+                          <div className="mt-5 overflow-hidden">
+                            <div className={`flex gap-2 ${project.tools.length > 4 ? "animate-marquee" : "flex-wrap"}`}>
+                              {project.tools.map((tool) => (
+                                <span key={tool.id} className="shrink-0 rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
+                                  {tool.name}
+                                </span>
+                              ))}
+                              {project.tools.length > 4 && project.tools.map((tool) => (
+                                <span key={`dup-${tool.id}`} className="shrink-0 rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
+                                  {tool.name}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </>
                       );
