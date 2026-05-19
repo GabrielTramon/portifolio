@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { PrismaProjectRepository } from "../../infra/repositories/PrismaProjectRepository";
 import { PrismaProjectMediaRepository } from "../../infra/repositories/PrismaProjectMediaRepository";
-import { LocalStorageService } from "../../infra/services/LocalStorageService";
+import { CloudinaryStorageService } from "../../infra/services/CloudinaryStorageService";
 import { UploadProjectMediaUseCase } from "../../application/use-cases/UploadProjectMediaUseCase";
 import { ListProjectMediaUseCase } from "../../application/use-cases/ListProjectMediaUseCase";
 import { RemoveProjectMediaUseCase } from "../../application/use-cases/RemoveProjectMediaUseCase";
@@ -13,7 +13,7 @@ const router = Router({ mergeParams: true });
 
 const projectRepository = new PrismaProjectRepository();
 const mediaRepository = new PrismaProjectMediaRepository();
-const storageService = new LocalStorageService();
+const storageService = new CloudinaryStorageService();
 
 const controller = new ProjectMediaController(
   new UploadProjectMediaUseCase(projectRepository, mediaRepository, storageService),
