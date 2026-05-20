@@ -26,3 +26,11 @@ body {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+@media (max-width: 639px) {
+  .animate-marquee {
+    animation: none;
+    transform: none;
+    width: 100%;
+  }
+}

@@ -187,7 +187,7 @@ export default async function PortfolioPage() {
                       const externalLink = project.link || null;
                       const cardHref = detailHref ?? externalLink;
                       const cardClass =
-                        "group flex flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
+                        "group flex min-w-0 flex-col rounded-xl border border-[#21262d] bg-[#161b22] p-6 transition hover:border-[#30363d] hover:bg-[#1c2128]";
                       const inner = (
                         <>
                           <div className="flex items-start justify-between">
@@ -206,15 +206,15 @@ export default async function PortfolioPage() {
                               ? project.description.slice(0, 120) + "…"
                               : project.description}
                           </p>
-                          <div className="mt-5 overflow-hidden">
-                            <div className={`flex gap-2 ${project.tools.length > 4 ? "animate-marquee" : "flex-wrap"}`}>
+                          <div className="mt-5 min-w-0 overflow-hidden">
+                            <div className={`flex min-w-0 gap-2 ${project.tools.length > 4 ? "animate-marquee flex-wrap sm:flex-nowrap" : "flex-wrap"}`}>
                               {project.tools.map((tool) => (
                                 <span key={tool.id} className="shrink-0 rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
                                   {tool.name}
                                 </span>
                               ))}
                               {project.tools.length > 4 && project.tools.map((tool) => (
-                                <span key={`dup-${tool.id}`} className="shrink-0 rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff]">
+                                <span key={`dup-${tool.id}`} className="hidden shrink-0 rounded-full bg-[#0d1117] px-2.5 py-0.5 text-xs text-[#58a6ff] sm:inline-block">
                                   {tool.name}
                                 </span>
                               ))}
