@@ -129,7 +129,7 @@ export default async function PortfolioPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Experiência", value: "3+ ano" },
+                { label: "Experiência", value: "3+ anos" },
                 { label: "Sistemas em produção", value: "6+" },
                 { label: "Atuação", value: "Full-Stack" },
                 { label: "Localização", value: "Criciúma/SC" },
