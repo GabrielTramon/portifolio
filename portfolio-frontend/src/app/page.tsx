@@ -117,7 +117,7 @@ export default async function PortfolioPage() {
                 <span className="text-[#58a6ff]">software que funciona.</span>
               </h2>
               <p className="mt-5 leading-relaxed text-[#8b949e]">
-                Olá, sou Gabriel. Desenvolvedor Full Stack com mais de 1 ano de experiência entregando
+                Olá, sou Gabriel. Desenvolvedor Full Stack com mais de 3 anos de experiência entregando
                 sistemas em produção com Next.js, Node.js, TypeScript e PostgreSQL. Na BE1 Tecnologia,
                 projetei e desenvolvi 4 sistemas end-to-end — desde o levantamento de requisitos até
                 o deploy, aplicando Clean Architecture e participando ativamente de code reviews.
