@@ -12,14 +12,16 @@ const PORT = process.env.PORT || 3003;
 
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5000")
   .split(",")
-  .map((o) => o.trim());
+  .map((o) => o.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(null, false);
     }
   },
   credentials: true,
@@ -37,6 +39,10 @@ app.use("/tools", toolRouter);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
